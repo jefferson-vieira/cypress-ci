@@ -12,9 +12,7 @@ Feature: Image Registration
   Scenario: Submitting an image with valid inputs using enter key
     Given I am on the image registration page
     When I enter "Alien BR" in the title field
-    Then I should see a check icon in the title field
     When I enter "https://cdn.mos.cms.futurecdn.net/eM9EvWyDxXcnQTTyH8c8p5-1200-80.jpg" in the URL field
-    Then I should see a check icon in the imageUrl field
     Then I can hit enter to submit the form
     And the list of registered images should be updated with the new item
     And the new item should be stored in the localStorage

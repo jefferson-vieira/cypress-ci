@@ -1,7 +1,5 @@
 /// <reference types="cypress" />
 
-import assert from 'assert';
-
 class RegisterForm {
   static colors = {
     error: 'rgb(220, 53, 69)',
@@ -33,6 +31,14 @@ class RegisterForm {
 
   static clickSubmitButton() {
     this.elements.submitBtn().click();
+
+    cy.wait(1000);
+  }
+
+  static hitEnter() {
+    cy.focused().type('{enter}');
+
+    cy.wait(1000);
   }
 }
 
@@ -51,7 +57,7 @@ describe('Image Registration', () => {
     });
 
     it(`Then I enter "" in the URL field`, () => {
-      RegisterForm.typeTitle('');
+      RegisterForm.typeImageUrl('');
     });
 
     it('Then I click the submit button', () => {
@@ -76,7 +82,162 @@ describe('Image Registration', () => {
 
         const color = styles.getPropertyValue('border-right-color');
 
-        assert.strictEqual(color, RegisterForm.colors.error);
+        expect(color).to.equal(RegisterForm.colors.error);
+      });
+    });
+  });
+
+  describe('Submitting an image with valid inputs using enter key', () => {
+    after(() => {
+      cy.clearAllLocalStorage();
+    });
+
+    const titleMock = 'Alien BR';
+    const imageUrlMock =
+      'https://cdn.mos.cms.futurecdn.net/eM9EvWyDxXcnQTTyH8c8p5-1200-80.jpg';
+
+    it('Given I am on the image registration page', () => {
+      cy.visit('/');
+    });
+
+    it(`When I enter "${titleMock}" in the title field`, () => {
+      RegisterForm.typeTitle(titleMock);
+    });
+
+    it(`When I enter "${imageUrlMock}" in the URL field`, () => {
+      RegisterForm.typeImageUrl(imageUrlMock);
+    });
+
+    it('Then I can hit enter to submit the form', () => {
+      RegisterForm.hitEnter();
+    });
+
+    it('And the list of registered images should be updated with the new item', () => {
+      cy.get('#card-list .card-img').should((elements) => {
+        const lastElement = elements[elements.length - 1];
+
+        const lastElementSrc = lastElement.getAttribute('src');
+
+        expect(lastElementSrc).to.equal(imageUrlMock);
+      });
+    });
+
+    it('And the new item should be stored in the localStorage', () => {
+      cy.getAllLocalStorage().should((localStorage) => {
+        const storageData = localStorage[window.location.origin];
+
+        const elements = JSON.parse(Object.values(storageData));
+
+        const lastElement = elements[elements.length - 1];
+
+        expect(lastElement).to.deep.equal({
+          title: titleMock,
+          imageUrl: imageUrlMock,
+        });
+      });
+    });
+
+    it('Then The inputs should be cleared', () => {
+      RegisterForm.elements.titleInput().should('have.value', '');
+
+      RegisterForm.elements.imageUrlInput().should('have.value', '');
+    });
+  });
+
+  describe('Submitting an image and updating the list', () => {
+    after(() => {
+      cy.clearAllLocalStorage();
+    });
+
+    const titleMock = 'Alien BR';
+    const imageUrlMock =
+      'https://cdn.mos.cms.futurecdn.net/eM9EvWyDxXcnQTTyH8c8p5-1200-80.jpg';
+
+    it('Given I am on the image registration page', () => {
+      cy.visit('/');
+    });
+
+    it(`Then I have entered "${titleMock}" in the title field`, () => {
+      RegisterForm.typeTitle(titleMock);
+    });
+
+    it(`Then I have entered "${imageUrlMock}" in the URL field`, () => {
+      RegisterForm.typeImageUrl(imageUrlMock);
+    });
+
+    it('When I click the submit button', () => {
+      RegisterForm.clickSubmitButton();
+    });
+
+    it('And the list of registered images should be updated with the new item', () => {
+      cy.get('#card-list .card-img').should((elements) => {
+        const lastElement = elements[elements.length - 1];
+
+        const lastElementSrc = lastElement.getAttribute('src');
+
+        expect(lastElementSrc).to.equal(imageUrlMock);
+      });
+    });
+
+    it('And the new item should be stored in the localStorage', () => {
+      cy.getAllLocalStorage().should((localStorage) => {
+        const storageData = localStorage[window.location.origin];
+
+        const elements = JSON.parse(Object.values(storageData));
+
+        const lastElement = elements[elements.length - 1];
+
+        expect(lastElement).to.deep.equal({
+          title: titleMock,
+          imageUrl: imageUrlMock,
+        });
+      });
+    });
+
+    it('Then The inputs should be cleared', () => {
+      RegisterForm.elements.titleInput().should('have.value', '');
+
+      RegisterForm.elements.imageUrlInput().should('have.value', '');
+    });
+  });
+
+  describe('Refreshing the page after submitting an image clicking in the submit button', () => {
+    after(() => {
+      cy.clearAllLocalStorage();
+    });
+
+    const titleMock = 'Alien BR';
+    const imageUrlMock =
+      'https://cdn.mos.cms.futurecdn.net/eM9EvWyDxXcnQTTyH8c8p5-1200-80.jpg';
+
+    it('Given I am on the image registration page', () => {
+      cy.visit('/');
+    });
+
+    it('Then I have submitted an image by clicking the submit button', () => {
+      RegisterForm.typeTitle(titleMock);
+
+      RegisterForm.typeImageUrl(imageUrlMock);
+
+      RegisterForm.clickSubmitButton();
+    });
+
+    it('When I refresh the page', () => {
+      cy.reload();
+    });
+
+    it('Then I should still see the submitted image in the list of registered images', () => {
+      cy.getAllLocalStorage().should((localStorage) => {
+        const storageData = localStorage[window.location.origin];
+
+        const elements = JSON.parse(Object.values(storageData));
+
+        const lastElement = elements[elements.length - 1];
+
+        expect(lastElement).to.deep.equal({
+          title: titleMock,
+          imageUrl: imageUrlMock,
+        });
       });
     });
   });
