@@ -1,0 +1,27 @@
+name: Tests e2e
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.15.0
+
+      - name: Install
+        run: npm ci
+        working-directory: .
+
+      - name: Run tests
+        run: npm run cypress:ci
+        working-directory: .
